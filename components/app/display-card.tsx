@@ -46,7 +46,7 @@ export default function DisplayCard({
       localStorage.setItem(arrName, JSON.stringify({ fav: [id] }));
       return;
     }
-    let parsedObj = JSON.parse(favObj);
+    const parsedObj = JSON.parse(favObj);
     if (parsedObj.fav.includes(id))
       parsedObj.fav = parsedObj.fav.filter((i: any) => i !== id);
     else parsedObj.fav.push(id);
