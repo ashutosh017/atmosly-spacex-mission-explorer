@@ -5,6 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import Image from "next/image";
 
 import { Dispatch, SetStateAction } from "react";
 
@@ -31,7 +32,9 @@ export function DetailCard({
 
         <div className="space-y-4">
           {mission?.links.patch.large && (
-            <img
+            <Image
+              height={100}
+              width={100}
               src={mission?.links.patch.large}
               alt={`${mission?.name} patch`}
               className="w-40 h-40 object-contain mx-auto"
