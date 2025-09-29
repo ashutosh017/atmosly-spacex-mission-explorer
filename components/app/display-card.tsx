@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 export default function DisplayCard({
   id,
@@ -18,12 +18,18 @@ export default function DisplayCard({
   date,
   tbd,
   rocket,
+  showCard,
+  setShowCard,
+  onClick,
 }: {
   id: string;
   name: string;
   date: string;
   tbd: boolean;
   rocket: string;
+  showCard: boolean;
+  setShowCard: Dispatch<SetStateAction<boolean>>;
+  onClick: () => void;
 }) {
   const arrName = "SpaceX_Favourite_Launches";
 
@@ -49,7 +55,7 @@ export default function DisplayCard({
   }
   return (
     <div>
-      <Card className="w-full max-w-lg">
+      <Card onClick={onClick} className="w-full max-w-lg">
         <CardHeader>
           <CardTitle>{name}</CardTitle>
           <CardDescription>
@@ -77,7 +83,7 @@ export default function DisplayCard({
                 <Star
                   className={cn(
                     "size-3 cursor-pointer",
-                    favourites.includes(id) && "fill-white"
+                    favourites.includes(id) && "dark:fill-white fill-black"
                   )}
                 />
                 <span className="text-xs">Add fav.</span>
@@ -99,8 +105,12 @@ export default function DisplayCard({
           </Button>
         </CardContent>
         <CardFooter className="flex-col items-start">
-          <Button variant={"link"} className="cursor-pointer ml-0 pl-0 ">
-            <span className="underline-offset-4 underline hover:text-yellow-100">
+          <Button
+            onClick={() => setShowCard(!showCard)}
+            variant={"link"}
+            className="cursor-pointer ml-0 pl-0 "
+          >
+            <span className="underline-offset-4 underline dark:hover:text-yellow-100">
               View details
             </span>
           </Button>

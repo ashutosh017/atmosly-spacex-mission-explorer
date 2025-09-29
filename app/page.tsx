@@ -17,10 +17,15 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import useDebounce from "@/hooks/useDebounce";
+import { DetailCard } from "@/components/app/detail-card";
+import DisplayCardSkeleton from "@/components/app/display-card-skeleton";
+import { ModeToggle } from "@/components/ui/mode-toggle";
 
 export default function Home() {
-  const [data, setData] = useState<any>({});
+  const [data, setData] = useState<any>(null);
   const [docs, setDocs] = useState<any>([]);
+  const [showCard, setShowCard] = useState<boolean>(false);
+  const [doc, setDoc] = useState<any>();
   const [query, setQuery] = useState({
     query: {},
     options: {},
@@ -46,16 +51,16 @@ export default function Home() {
         setData(fetchData.data);
         setDocs(fetchData.data.docs);
       } catch (error) {
+        setData(undefined);
         console.log(error);
       }
     };
     fetchData();
   }, [debouncedQuery]);
-  console.log(data);
   return (
-    <div className="bg-zinc-900 min-h-screen ">
+    <div className="dark:bg-zinc-900 bg-zinc-50 min-h-screen ">
       {/* Navbar */}
-      <div className="bg-background  md:py-4 md:px-8 px-4 py-2 gap-4  flex justify-between md:flex-row flex-col">
+      <nav className="bg-background/40  md:py-4 md:px-8 px-4 py-2 gap-4  flex justify-between md:flex-row flex-col">
         <div className="flex flex-col gap-2">
           <h1 className="font-extrabold lg:text-2xl text-xl ">
             Atmosly - SpaceX Mission Explorer
@@ -84,14 +89,15 @@ export default function Home() {
             }}
             id="show-favourites"
           />
-          <Label htmlFor="show-favourites">Show favourites</Label>
+          <Label className="mr-8 " htmlFor="show-favourites">Show favourites</Label>
+          <ModeToggle />
         </div>
-      </div>
+      </nav>
 
       {/* Main body */}
-      <div className="container mx-auto my-8 flex flex-col gap-8 px-4 py-8 ">
+      <main className="container mx-auto my-8 flex flex-col gap-8 px-4 py-8 ">
         {/* Search bar, select year, and successful only toggle */}
-        <div className="flex md:flex-row flex-col gap-6 ">
+        <section className="flex md:flex-row flex-col gap-6 ">
           <div className="flex-1">
             <span className="">Search by mission name</span>
             <Input
@@ -117,7 +123,6 @@ export default function Home() {
             <span className="">Year</span>
             <Select
               onValueChange={(value) => {
-                console.log("fired");
                 if (value === "all-years")
                   setQuery((prev) => ({
                     query: {},
@@ -181,30 +186,52 @@ export default function Home() {
             />
             <Label htmlFor="successful-only">Successful only</Label>
           </div>
-        </div>
+        </section>
 
-        {/* Misson Cards */}
-        {!data.docs ? (
-          <span className="mx-auto my-8">Loading...</span>
+        {data && data.docs.length === 0 ? (
+          <div className="flex flex-col items-center py-8">
+            <p className="md:text-lg mb-4">No data available.</p>
+            <Button
+              variant={"outline"}
+              onClick={() =>
+                setQuery((prev) => ({
+                  query: {},
+                  options: {},
+                }))
+              } // your refetch function
+              className="px-4 py-2 cursor-pointer  "
+            >
+              Refresh
+            </Button>
+          </div>
         ) : (
           <>
+            {/* Misson Cards */}
             <div className="grid xl:grid-cols-3 lg:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-4 ">
-              {data?.docs?.map((doc: any, ind: number) => (
-                <DisplayCard
-                  key={ind}
-                  name={doc.name}
-                  date={doc.date_utc}
-                  tbd={doc.tbd}
-                  rocket={doc.rocket}
-                  id={doc.id}
-                />
-              ))}
+              {data === null
+                ? Array.from({ length: 10 }, (_, v) => v + 1).map((v) => (
+                    <DisplayCardSkeleton key={v} />
+                  ))
+                : data?.docs?.map((doc: any, ind: number) => (
+                    <DisplayCard
+                      onClick={() => setDoc(doc)}
+                      key={ind}
+                      name={doc.name}
+                      date={doc.date_utc}
+                      tbd={doc.tbd}
+                      rocket={doc.rocket}
+                      id={doc.id}
+                      showCard={showCard}
+                      setShowCard={setShowCard}
+                    />
+                  ))}
             </div>
 
+            {/* Navigation */}
             <div className="mx-auto flex flex-col items-center gap-4 md:flex-row">
               <div className="flex gap-4 items-center">
                 <Button
-                  disabled={data.prevPage === null}
+                  disabled={data?.prevPage === null}
                   className="cursor-pointer"
                   variant={"secondary"}
                   onClick={() => {
@@ -212,7 +239,7 @@ export default function Home() {
                       query: prev.query,
                       options: {
                         ...prev.options,
-                        page: data.prevPage,
+                        page: data?.prevPage,
                       },
                     }));
                   }}
@@ -223,7 +250,7 @@ export default function Home() {
                   Page {data?.page} of {data?.totalPages}
                 </span>
                 <Button
-                  disabled={data.nextPage === null}
+                  disabled={data?.nextPage === null}
                   className="cursor-pointer"
                   variant={"secondary"}
                   onClick={() => {
@@ -231,7 +258,7 @@ export default function Home() {
                       query: prev.query,
                       options: {
                         ...prev.options,
-                        page: data.nextPage,
+                        page: data?.nextPage,
                       },
                     }));
                   }}
@@ -239,7 +266,7 @@ export default function Home() {
                   Next
                 </Button>
               </div>
-              <div className="flex gap-4 items-center">
+              <div className="flex gap-4 items-center md:absolute md:right-12">
                 <span>Jump to </span>
                 <Input
                   type="number"
@@ -260,7 +287,8 @@ export default function Home() {
             </div>
           </>
         )}
-      </div>
+      </main>
+      <DetailCard mission={doc} showCard={showCard} setShowCard={setShowCard} />
     </div>
   );
 }
